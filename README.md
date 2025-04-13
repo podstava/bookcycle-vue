@@ -1,22 +1,22 @@
-# Nuxtship - Nuxt SAAS Starter Website Template
+# BookCycle - Book Exchange Platform
 
-Nuxtship is a free starter nuxt website template for saas, startups, marketing websites & landing pages. Built with Nuxt & TailwindCSS.
+BookCycle is a revolutionary platform for exchanging books between people. We bring back the culture of reading, make books accessible, and give them a second life. Free. Convenient. Local.
 
-This Free Template is sponsored by [Gr33nW33n](https://github.com/Gr33nW33n)
+## Features
 
-If you like my work please feel free to
+- 📚 **Shared Book Exchange**: Add your books and find new ones — everything is simple, transparent, and free. BookCycle connects readers in your city.
+- 📦 **Multiple Transfer Options**: Mail delivery, in-person meetings, or partner pickup points — choose what's most convenient for you.
+- 💬 **Reviews and Trust**: Each user has a profile showing exchange history and ratings. Trust is the main currency of BookCycle.
+- 🧭 **Local Search**: Find books in your neighborhood or city to avoid waiting weeks for delivery. Fast and convenient.
+- 🎟 **Subscriptions and Bonuses**: Access to exclusive books, partner libraries, and events through subscription or active community participation.
+- 📱 **Modern Interface**: Responsive, lightweight, and fast design. Use it on mobile, tablet, or computer — without limitations.
 
-<a href="https://www.paypal.com/paypalme/jakobaichmayr" target="_blank">
-  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="260" />
-</a>
+## Tech Stack
 
-## Live Demo
-
-**[https://nuxtship.netlify.app/](https://nuxtship.netlify.app/)**
-
-## Built with Nuxt 3 Minimal Starter
-
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+- Nuxt 3
+- TypeScript
+- TailwindCSS
+- Vue 3
 
 ## Setup
 
@@ -31,9 +31,6 @@ pnpm install
 
 # yarn
 yarn install
-
-# bun
-bun install
 ```
 
 ## Development Server
@@ -49,9 +46,6 @@ pnpm run dev
 
 # yarn
 yarn dev
-
-# bun
-bun run dev
 ```
 
 ## Production
@@ -67,9 +61,6 @@ pnpm run build
 
 # yarn
 yarn build
-
-# bun
-bun run build
 ```
 
 Locally preview production build:
@@ -83,15 +74,5 @@ pnpm run preview
 
 # yarn
 yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-## Attributions
-
-Original Astroship Template: **[https://astroship.web3templates.com/](https://astroship.web3templates.com/)** from **[Web3Templates](https://web3templates.com/)**
-
-Forked from: **[https://github.com/surjithctly/astroship](https://github.com/surjithctly/astroship)**
