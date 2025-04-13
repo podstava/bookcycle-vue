@@ -1,51 +1,50 @@
-<script setup>
-const { data: books, pending, error } = await useFetch('/books/', {
-  baseURL: useRuntimeConfig().public.apiBase,
-  headers: {
-    'Accept': 'application/json'
-  }
-})
-
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('uk-UA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-</script>
-
 <template>
-  <div class="min-h-screen bg-gray-50 py-12">
-    <div class="container mx-auto px-4">
-      <h1 class="text-3xl font-bold text-gray-900 mb-8">Всі книги</h1>
-      
-      <!-- Loading state -->
-      <div v-if="pending" class="flex justify-center items-center h-64">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-
-      <!-- Error state -->
-      <div v-else-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        <p>Помилка при завантаженні книг. Спробуйте пізніше.</p>
-      </div>
-
-      <!-- Books grid -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div v-for="book in books" :key="book.id" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="p-4">
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">{{ book.title }}</h2>
-            <p class="text-gray-600 mb-2">{{ book.author }}</p>
-            <p class="text-sm text-gray-500 mb-4">{{ book.description }}</p>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-500">Додано: {{ formatDate(book.created_at) }}</span>
-              <span class="text-sm font-medium" :class="book.status === 'available' ? 'text-green-600' : 'text-gray-500'">
-                {{ book.status === 'available' ? 'Доступна' : 'Недоступна' }}
-              </span>
-            </div>
-          </div>
+  <div class="min-h-screen bg-gray-50">
+    <BooksNavbar 
+      :show-login-modal="showLoginModal"
+      :show-register-modal="showRegisterModal"
+      @update:show-login-modal="showLoginModal = $event"
+      @update:show-register-modal="showRegisterModal = $event"
+    />
+    
+    <section class="p-8">
+      <h1 class="text-3xl font-bold mb-6 text-slate-800">Усі книги</h1>
+  
+      <div v-if="books.length" class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div
+          v-for="book in books"
+          :key="book.id"
+          class="rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md transition bg-white"
+        >
+          <h2 class="text-xl font-semibold text-slate-900">{{ book.title }}</h2>
+          <p class="text-sm text-slate-600 mb-2">Автор: {{ book.author }}</p>
+          <p class="text-sm text-slate-500 line-clamp-3">{{ book.description }}</p>
         </div>
       </div>
-    </div>
+  
+      <div v-else class="text-slate-500">Немає доступних книг.</div>
+    </section>
+
+    <LoginModal v-if="showLoginModal" @close="showLoginModal = false" />
+    <RegisterModal v-if="showRegisterModal" @close="showRegisterModal = false" />
   </div>
-</template> 
+</template>
+  
+<script setup lang="ts">
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  description: string;
+}
+
+const showLoginModal = ref(false)
+const showRegisterModal = ref(false)
+const books = ref<Book[]>([]);
+
+onMounted(async () => {
+  const { data } = await useFetch<Book[]>('/api/books');
+  books.value = data.value || [];
+});
+</script>
+  
