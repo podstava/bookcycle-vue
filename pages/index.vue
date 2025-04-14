@@ -1,6 +1,6 @@
 <script setup>
 definePageMeta({
-  layout: "landing",
+  layout: "default",
 });
 </script>
 
@@ -8,7 +8,5 @@ definePageMeta({
   <LandingContainer>
     <LandingBookCycleHero @show-register-modal="$emit('show-register-modal')"></LandingBookCycleHero>
     <LandingFeatures></LandingFeatures>
-    <!-- <LandingLogos></LandingLogos> -->
-    <!-- <LandingCta></LandingCta> -->
   </LandingContainer>
 </template>

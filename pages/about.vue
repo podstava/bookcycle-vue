@@ -1,6 +1,6 @@
 <script setup>
 definePageMeta({
-  layout: "landing",
+  layout: "default",
 });
 
 const TeamImg1 = "https://source.unsplash.com/IF9TK5Uy-KI";
