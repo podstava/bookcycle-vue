@@ -9,7 +9,7 @@ const userStore = useUserStore()
 const emit = defineEmits(['close'])
 
 const login = async () => {
-  const { data, error } = await useFetch('/auth/token/login/', {
+  const { data, error } = await useFetch('/users/sign-in/', {
     baseURL: useRuntimeConfig().public.apiBase,
     method: 'POST',
     body: { username: username.value, password: password.value }

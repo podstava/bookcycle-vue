@@ -16,7 +16,7 @@ const register = async () => {
     return
   }
 
-  const { data, error } = await useFetch('/auth/users/', {
+  const { data, error } = await useFetch('/users/sing-up/', {
     baseURL: useRuntimeConfig().public.apiBase,
     method: 'POST',
     body: { 
@@ -30,7 +30,7 @@ const register = async () => {
     errorMsg.value = 'Помилка при реєстрації'
   } else {
     // Автоматично логінуємо користувача після реєстрації
-    const { data: loginData, error: loginError } = await useFetch('/auth/token/login/', {
+    const { data: loginData, error: loginError } = await useFetch('/users/sign-in/', {
       baseURL: useRuntimeConfig().public.apiBase,
       method: 'POST',
       body: { username: username.value, password: password.value }
