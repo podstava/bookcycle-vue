@@ -15,7 +15,7 @@ const showRegisterModal = ref(false)
       <slot />
     </main>
     <LandingFooter class="mt-auto" />
-    <LoginModal v-if="showLoginModal" @close="showLoginModal = false" />
-    <RegisterModal v-if="showRegisterModal" @close="showRegisterModal = false" />
+    <ModalsLoginModal v-if="showLoginModal" @close="showLoginModal = false" />
+    <ModalsRegisterModal v-if="showRegisterModal" @close="showRegisterModal = false" />
   </div>
 </template> 

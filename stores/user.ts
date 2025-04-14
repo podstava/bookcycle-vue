@@ -6,10 +6,10 @@ export const useUserStore = defineStore('user', {
     user: null
   }),
   actions: {
-    setToken(token) {
+    setToken(token: any) {
       this.token = token
     },
-    setUser(user) {
+    setUser(user: any) {
       this.user = user
     }
   }
