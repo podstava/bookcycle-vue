@@ -41,15 +41,9 @@
         />
       </div>
     </section>
-
-    <LoginModal v-if="showLoginModal" @close="showLoginModal = false" />
-    <RegisterModal v-if="showRegisterModal" @close="showRegisterModal = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import FeatureCard from '@/components/landing/FeatureCard.vue'
-
-const showLoginModal = ref(false)
-const showRegisterModal = ref(false)
 </script>

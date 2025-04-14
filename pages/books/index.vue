@@ -34,9 +34,6 @@
         <p class="text-sm text-slate-500">Спробуйте перевірити пізніше або додайте свою першу книгу.</p>
       </div>
     </section>
-
-    <LoginModal v-if="showLoginModal" @close="showLoginModal = false" />
-    <RegisterModal v-if="showRegisterModal" @close="showRegisterModal = false" />
   </div>
 </template>
   
@@ -53,8 +50,6 @@ interface Book {
   description: string;
 }
 
-const showLoginModal = ref(false)
-const showRegisterModal = ref(false)
 const isLoading = ref(true)
 const books = ref<Book[]>([]);
 
