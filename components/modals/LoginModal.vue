@@ -1,26 +1,85 @@
-<script setup>
+<script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 
 const username = ref('')
 const password = ref('')
 const errorMsg = ref('')
+const isLoading = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const emit = defineEmits(['close'])
 
-const login = async () => {
-  const { data, error } = await useFetch('/users/sign-in/', {
-    baseURL: useRuntimeConfig().public.apiBase,
-    method: 'POST',
-    body: { username: username.value, password: password.value }
-  })
+interface LoginResponse {
+  access?: string;
+  refresh?: string;
+  detail?: string;
+}
 
-  if (error.value) {
-    errorMsg.value = 'Невірний логін або пароль'
-  } else if (data.value?.auth_token) {
-    userStore.setToken(data.value.auth_token)
-    emit('close')
-    router.push('/user/profile')
+const login = async () => {
+  // Reset error message
+  errorMsg.value = ''
+  
+  // Validate inputs
+  if (!username.value || !password.value) {
+    errorMsg.value = 'Будь ласка, введіть логін та пароль'
+    return
+  }
+  
+  isLoading.value = true
+  
+  try {
+    const { data, error } = await useApi<LoginResponse>('/user/sign-in/', {
+      method: 'POST',
+      body: { 
+        username: username.value, 
+        password: password.value 
+      }
+    })
+
+    if (error.value) {
+      if (error.value.data?.detail) {
+        errorMsg.value = error.value.data.detail
+      } else {
+        errorMsg.value = 'Невірний логін або пароль'
+      }
+    } else if (data.value?.access && data.value?.refresh) {
+      // Store tokens in localStorage
+      localStorage.setItem('auth_token', data.value.access)
+      localStorage.setItem('refresh_token', data.value.refresh)
+      
+      // Also update the store
+      userStore.setToken(data.value.access)
+      userStore.setRefreshToken(data.value.refresh)
+      
+      // Get user profile
+      try {
+        const { data: userData } = await useApi(`/user/user-profile/${username.value}/`, {
+          headers: {
+            'Authorization': `Bearer ${data.value.access}`
+          }
+        })
+        
+        if (userData.value?.user) {
+          userStore.setUser({
+            id: userData.value.user.id,
+            username: userData.value.user.username,
+            email: userData.value.user.email
+          })
+        }
+      } catch (profileError) {
+        console.error('Error fetching user profile:', profileError)
+      }
+      
+      emit('close')
+      router.push('/books')
+    } else {
+      errorMsg.value = 'Помилка при вході. Спробуйте пізніше.'
+    }
+  } catch (err) {
+    console.error('Login error:', err)
+    errorMsg.value = 'Помилка при вході. Спробуйте пізніше.'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -64,4 +123,4 @@ const login = async () => {
       </div>
     </div>
   </div>
-</template> 
+</template>

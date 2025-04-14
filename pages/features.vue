@@ -1,11 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- <BooksNavbar 
-      :show-login-modal="showLoginModal"
-      :show-register-modal="showRegisterModal"
-      @update:show-login-modal="showLoginModal = $event"
-      @update:show-register-modal="showRegisterModal = $event"
-    /> -->
 
     <section class="p-8 max-w-5xl mx-auto">
       <h1 class="text-4xl font-bold mb-4 text-slate-900 dark:text-white">Що таке BookCycle?</h1>
@@ -45,5 +39,9 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  layout: "default",
+});
+
 import FeatureCard from '@/components/landing/FeatureCard.vue'
 </script>

@@ -3,7 +3,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:8000/api/v1'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000/api/v1',
+      web3FormsKey: process.env.NUXT_PUBLIC_WEB3FORMS_KEY || ''
     },
   },
   devtools: { enabled: true },
@@ -16,8 +17,10 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["nuxt-icon",
+  modules: [
+    "nuxt-icon",
     '@pinia/nuxt',
   ],
+  
   compatibilityDate: "2025-04-12",
 });

@@ -1,16 +1,66 @@
 import { defineStore } from 'pinia'
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  // Add other user properties as needed
+}
+
+interface TokenResponse {
+  access?: string;
+}
+
+// Make sure to export the store definition
 export const useUserStore = defineStore('user', {
   state: () => ({
-    token: null,
-    user: null
+    token: null as string | null,
+    refreshToken: null as string | null,
+    user: null as User | null
   }),
   actions: {
-    setToken(token: any) {
+    setToken(token: string | null) {
       this.token = token
     },
-    setUser(user: any) {
+    setRefreshToken(token: string | null) {
+      this.refreshToken = token
+    },
+    setUser(user: User | null) {
       this.user = user
+    },
+    logout() {
+      this.token = null;
+      this.refreshToken = null;
+      this.user = null;
+    },
+    async refreshAccessToken() {
+      if (!this.refreshToken) return false;
+      
+      try {
+        // Use $fetch instead of useFetch to avoid Pinia initialization issues
+        const config = useRuntimeConfig();
+        const response = await $fetch<TokenResponse>('/user/refresh/', {
+          baseURL: config.public.apiBase,
+          method: 'POST',
+          body: { refresh: this.refreshToken }
+        });
+        
+        if (response && response.access) {
+          this.token = response.access;
+          return true;
+        }
+        
+        return false;
+      } catch (err) {
+        console.error('Error refreshing token:', err);
+        this.logout();
+        return false;
+      }
     }
-  }
+  },
+  getters: {
+    isAuthenticated: (state) => !!state.token
+  },
+  // Enable persistence when we add the required package
+  // persist: true
 })

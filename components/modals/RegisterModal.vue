@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useUserStore } from '@/stores/user'
 
 const username = ref('')
@@ -6,43 +6,98 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const errorMsg = ref('')
+const isLoading = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const emit = defineEmits(['close'])
 
 const register = async () => {
+  // Reset error message
+  errorMsg.value = ''
+  
+  // Validate passwords match
   if (password.value !== confirmPassword.value) {
     errorMsg.value = 'Паролі не співпадають'
     return
   }
+  
+  // Validate password length
+  if (password.value.length < 8) {
+    errorMsg.value = 'Пароль повинен містити щонайменше 8 символів'
+    return
+  }
+  
+  // Validate username
+  if (username.value.length < 5 || username.value.length > 20) {
+    errorMsg.value = "Ім'я користувача повинно бути від 5 до 20 символів"
+    return
+  }
+  
+  if (!/^[a-zA-Z0-9_]+$/.test(username.value)) {
+    errorMsg.value = "Ім'я користувача може містити лише латинські літери, цифри та підкреслення"
+    return
+  }
+  
+  // Validate email
+  if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.value)) {
+    errorMsg.value = "Неправильний формат електронної пошти"
+    return
+  }
 
-  const { data, error } = await useFetch('/users/sing-up/', {
-    baseURL: useRuntimeConfig().public.apiBase,
-    method: 'POST',
-    body: { 
-      username: username.value,
-      email: email.value,
-      password: password.value
-    }
-  })
-
-  if (error.value) {
-    errorMsg.value = 'Помилка при реєстрації'
-  } else {
-    // Автоматично логінуємо користувача після реєстрації
-    const { data: loginData, error: loginError } = await useFetch('/users/sign-in/', {
-      baseURL: useRuntimeConfig().public.apiBase,
+  isLoading.value = true
+  
+  try {
+    // Register user
+    const { data, error } = await useApi('/user/sign-up/', {
       method: 'POST',
-      body: { username: username.value, password: password.value }
+      body: { 
+        username: username.value,
+        email: email.value,
+        password: password.value
+      }
     })
 
-    if (loginError.value) {
-      errorMsg.value = 'Помилка при вході'
-    } else if (loginData.value?.auth_token) {
-      userStore.setToken(loginData.value.auth_token)
+    if (error.value) {
+      // Handle specific error messages from backend
+      if (error.value.data) {
+        if (error.value.data.username) {
+          errorMsg.value = error.value.data.username[0]
+        } else if (error.value.data.email) {
+          errorMsg.value = error.value.data.email[0]
+        } else if (error.value.data.password) {
+          errorMsg.value = error.value.data.password[0]
+        } else {
+          errorMsg.value = 'Помилка при реєстрації'
+        }
+      } else {
+        errorMsg.value = 'Помилка при реєстрації'
+      }
+    } else if (data.value?.tokens?.access) {
+      // Registration successful, store tokens in localStorage
+      localStorage.setItem('auth_token', data.value.tokens.access)
+      localStorage.setItem('refresh_token', data.value.tokens.refresh)
+      
+      // Also update the store
+      userStore.setToken(data.value.tokens.access)
+      userStore.setRefreshToken(data.value.tokens.refresh)
+      
+      // Store user data
+      if (data.value.user) {
+        userStore.setUser({
+          id: data.value.user.id,
+          username: data.value.user.username,
+          email: data.value.user.email
+        })
+      }
+      
       emit('close')
-      router.push('/user/profile')
+      router.push('/books')
     }
+  } catch (err) {
+    console.error('Registration error:', err)
+    errorMsg.value = 'Помилка при реєстрації. Спробуйте пізніше.'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -102,4 +157,4 @@ const register = async () => {
       </div>
     </div>
   </div>
-</template> 
+</template>

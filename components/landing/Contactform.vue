@@ -1,67 +1,74 @@
 <script setup>
-onMounted(() => {
-  const form = document.getElementById("form");
-  const result = document.getElementById("result");
+const config = useRuntimeConfig();
+const form = ref(null);
+const result = ref(null);
+const formData = reactive({
+  name: '',
+  email: '',
+  message: ''
+});
+const isSubmitting = ref(false);
+const submitStatus = ref(null);
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    form.classList.add("was-validated");
-    if (!form.checkValidity()) {
-      form.querySelectorAll(":invalid")[0].focus();
-      return;
-    }
-    const formData = new FormData(form);
-    const object = Object.fromEntries(formData);
-    const json = JSON.stringify(object);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!form.value.checkValidity()) {
+    form.value.classList.add("was-validated");
+    return;
+  }
+  
+  isSubmitting.value = true;
+  submitStatus.value = "Sending...";
+  
+  const json = JSON.stringify({
+    name: formData.name,
+    email: formData.email,
+    message: formData.message,
+    access_key: config.public.web3FormsKey || 'YOUR_ACCESS_KEY_HERE'
+  });
 
-    result.innerHTML = "Sending...";
-
-    fetch("https://api.web3forms.com/submit", {
+  try {
+    const response = await fetch("https://api.web3forms.com/submit", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
       body: json,
-    })
-      .then(async (response) => {
-        let json = await response.json();
-        if (response.status == 200) {
-          result.classList.add("text-green-500");
-          result.innerHTML = json.message;
-        } else {
-          console.log(response);
-          result.classList.add("text-red-500");
-          result.innerHTML = json.message;
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        result.innerHTML = "Something went wrong!";
-      })
-      .then(function () {
-        form.reset();
-        form.classList.remove("was-validated");
-        setTimeout(() => {
-          result.style.display = "none";
-        }, 5000);
-      });
-  });
-});
+    });
+    
+    const responseData = await response.json();
+    
+    if (response.status === 200) {
+      submitStatus.value = responseData.message;
+      formData.name = '';
+      formData.email = '';
+      formData.message = '';
+      form.value.classList.remove("was-validated");
+    } else {
+      console.log(response);
+      submitStatus.value = responseData.message || "Something went wrong!";
+    }
+  } catch (error) {
+    console.error(error);
+    submitStatus.value = "Something went wrong!";
+  } finally {
+    isSubmitting.value = false;
+    setTimeout(() => {
+      submitStatus.value = null;
+    }, 5000);
+  }
+};
 </script>
 
 <template>
-  <!-- To make this contact form work, create your free access key from https://web3forms.com/
-     Then you will get all form submissions in your email inbox. -->
+  <!-- To make this contact form work, add WEB3FORMS_KEY to your .env file -->
   <form
-    action="https://api.web3forms.com/submit"
-    method="POST"
-    id="form"
+    ref="form"
+    @submit="handleSubmit"
     class="needs-validation"
     novalidate
   >
-    <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE" />
-    <!-- Create your free access key from https://web3forms.com/ -->
     <input
       type="checkbox"
       class="hidden"
@@ -70,11 +77,11 @@ onMounted(() => {
     />
     <div class="mb-5">
       <input
+        v-model="formData.name"
         type="text"
         placeholder="Full Name"
         required
         class="w-full px-4 py-3 border-2 placeholder:text-gray-800 rounded-md outline-none focus:ring-4 border-gray-300 focus:border-gray-600 ring-gray-100"
-        name="name"
       />
       <div class="empty-feedback invalid-feedback text-red-400 text-sm mt-1">
         Please provide your full name.
@@ -84,9 +91,9 @@ onMounted(() => {
       <label for="email_address" class="sr-only">Email Address</label
       ><input
         id="email_address"
+        v-model="formData.email"
         type="email"
         placeholder="Email Address"
-        name="email"
         required
         class="w-full px-4 py-3 border-2 placeholder:text-gray-800 rounded-md outline-none focus:ring-4 border-gray-300 focus:border-gray-600 ring-gray-100"
       />
@@ -99,7 +106,7 @@ onMounted(() => {
     </div>
     <div class="mb-3">
       <textarea
-        name="message"
+        v-model="formData.message"
         required
         placeholder="Your Message"
         class="w-full px-4 py-3 border-2 placeholder:text-gray-800 rounded-md outline-none h-36 focus:ring-4 border-gray-300 focus:border-gray-600 ring-gray-100"
@@ -108,8 +115,12 @@ onMounted(() => {
         Please enter your message.
       </div>
     </div>
-    <LandingButton type="submit" size="lg" block>Send Message</LandingButton>
-    <div id="result" class="mt-3 text-center"></div>
+    <LandingButton type="submit" size="lg" block :disabled="isSubmitting">
+      {{ isSubmitting ? 'Sending...' : 'Send Message' }}
+    </LandingButton>
+    <div v-if="submitStatus" class="mt-3 text-center" :class="{'text-green-500': submitStatus === 'Success'}">
+      {{ submitStatus }}
+    </div>
   </form>
 </template>
 

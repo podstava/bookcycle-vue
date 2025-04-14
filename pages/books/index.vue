@@ -1,11 +1,5 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- <BooksNavbar 
-      :show-login-modal="showLoginModal"
-      :show-register-modal="showRegisterModal"
-      @update:show-login-modal="showLoginModal = $event"
-      @update:show-register-modal="showRegisterModal = $event"
-    /> -->
     
     <section class="p-8">
       <h1 class="text-3xl font-bold mb-6 text-slate-800">Усі книги</h1>
@@ -38,10 +32,13 @@
 </template>
   
 <script setup lang="ts">
-import { ref, onMounted, type Ref } from 'vue'
+definePageMeta({
+  layout: "default",
+  middleware: ["auth"],
+  requiresAuth: true
+});
 
-// TypeScript declaration for useFetch
-declare function useFetch<T>(url: string): Promise<{ data: Ref<T> }>
+import { ref, onMounted, type Ref } from 'vue'
 
 interface Book {
   id: number;
@@ -55,8 +52,8 @@ const books = ref<Book[]>([]);
 
 onMounted(async () => {
   try {
-    const { data } = await useFetch<Book[]>('/api/books');
-    books.value = data.value || [];
+    const { data } = await useApi<Book[]>('/books');
+    books.value = Array.isArray(data.value) ? data.value : [];
   } catch (error) {
     console.error('Помилка при завантаженні книг:', error)
   } finally {
@@ -64,4 +61,3 @@ onMounted(async () => {
   }
 });
 </script>
-  
