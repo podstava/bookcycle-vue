@@ -4,7 +4,12 @@ interface User {
   id: number;
   username: string;
   email: string;
-  // Add other user properties as needed
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  city?: string;
+  city_id?: number;
+  avatar?: string;
 }
 
 interface TokenResponse {

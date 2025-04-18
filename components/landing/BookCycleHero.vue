@@ -11,12 +11,6 @@
           Бібліотека майбутнього: екологічно, безкоштовно, цікаво
         </p>
         <div class="mt-8 flex flex-col sm:flex-row sm:justify-start items-center gap-4">
-          <button 
-            @click="emit('show-register-modal')" 
-            class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            Зареєструватись
-          </button>
           <NuxtLink 
             to="/books" 
             class="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"

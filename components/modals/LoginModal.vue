@@ -52,26 +52,45 @@ const login = async () => {
       userStore.setRefreshToken(data.value.refresh)
       
       // Get user profile
+      let profileComplete = false
       try {
-        const { data: userData } = await useApi(`/user/user-profile/${username.value}/`, {
+        const { data: userData } = await useApi(`/user/user-profile/`, {
           headers: {
             'Authorization': `Bearer ${data.value.access}`
           }
         })
         
         if (userData.value?.user) {
+          // Store user data with profile information
           userStore.setUser({
             id: userData.value.user.id,
             username: userData.value.user.username,
-            email: userData.value.user.email
+            email: userData.value.user.email,
+            first_name: userData.value.first_name,
+            last_name: userData.value.last_name,
+            phone_number: userData.value.phone_number,
+            city: userData.value.city?.name,
+            city_id: userData.value.city?.id,
+            avatar: userData.value.avatar
           })
+          
+          // Check if profile is complete
+          profileComplete = !!(userData.value.first_name && userData.value.last_name && userData.value.phone_number)
         }
       } catch (profileError) {
         console.error('Error fetching user profile:', profileError)
       }
       
       emit('close')
-      router.push('/books')
+      
+      // Redirect based on profile completeness
+      if (profileComplete) {
+        // Profile is complete, redirect to books page
+        router.push('/books')
+      } else {
+        // Profile is incomplete, redirect to profile completion page
+        router.push('/user/complete-profile')
+      }
     } else {
       errorMsg.value = 'Помилка при вході. Спробуйте пізніше.'
     }

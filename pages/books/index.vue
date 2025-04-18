@@ -52,7 +52,7 @@ const books = ref<Book[]>([]);
 
 onMounted(async () => {
   try {
-    const { data } = await useApi<Book[]>('/books');
+    const { data } = await useApi<Book[]>('/book-crossing/book');
     books.value = Array.isArray(data.value) ? data.value : [];
   } catch (error) {
     console.error('Помилка при завантаженні книг:', error)

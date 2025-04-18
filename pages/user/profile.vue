@@ -26,9 +26,9 @@
                   <span>{{ userProfile.phone_number }}</span>
                 </div>
                 
-                <div v-if="userProfile?.city" class="flex items-center gap-2">
+                <div v-if="userProfile?.city?.name" class="flex items-center gap-2">
                   <Icon name="heroicons:map-pin" class="w-5 h-5 text-gray-500" />
-                  <span>{{ userProfile.city }}</span>
+                  <span>{{ userProfile.city.name }}</span>
                 </div>
               </div>
               
@@ -91,11 +91,20 @@
                 
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Місто</label>
-                  <input 
-                    v-model="form.city" 
-                    type="text" 
+                  <div v-if="isLoadingCities" class="flex items-center space-x-2 p-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                    <span class="text-sm text-gray-500">Завантаження міст...</span>
+                  </div>
+                  <select 
+                    v-else
+                    v-model="form.cityId" 
                     class="w-full p-2 border border-gray-300 rounded-lg"
-                  />
+                  >
+                    <option value="" disabled>Оберіть місто</option>
+                    <option v-for="city in cities" :key="city.id" :value="city.id">
+                      {{ city.name }}
+                    </option>
+                  </select>
                 </div>
               </div>
               
@@ -147,13 +156,40 @@ const form = reactive({
   firstName: '',
   lastName: '',
   phoneNumber: '',
-  city: '',
+  cityId: null as number | null,
   avatar: null as File | null
 })
+
+// Cities data
+const cities = ref<Array<{ id: number, name: string }>>([])
+const isLoadingCities = ref(false)
+
+// Load cities from API
+const loadCities = async () => {
+  isLoadingCities.value = true
+  
+  try {
+    const { data, error } = await useApi('/book_crossing/cities/')
+    
+    if (error.value) {
+      console.error('Error loading cities:', error.value)
+      return
+    }
+    
+    cities.value = data.value || []
+  } catch (err) {
+    console.error('Error loading cities:', err)
+  } finally {
+    isLoadingCities.value = false
+  }
+}
 
 // Load user profile
 onMounted(async () => {
   if (!userStore.user?.username) return
+  
+  // Load cities first
+  await loadCities()
   
   try {
     const { data, error } = await useApi(`/user/user-profile/${userStore.user.username}/`)
@@ -166,10 +202,29 @@ onMounted(async () => {
     userProfile.value = data.value
     
     // Initialize form with current values
-    form.firstName = data.value?.first_name || ''
-    form.lastName = data.value?.last_name || ''
-    form.phoneNumber = data.value?.phone_number || ''
-    form.city = data.value?.city?.name || ''
+    form.firstName = data.value?.first_name || userStore.user?.first_name || ''
+    form.lastName = data.value?.last_name || userStore.user?.last_name || ''
+    form.phoneNumber = data.value?.phone_number || userStore.user?.phone_number || ''
+    
+    // Set city ID if available
+    if (data.value?.city?.id) {
+      form.cityId = data.value.city.id
+    } else if (userStore.user?.city_id) {
+      form.cityId = userStore.user.city_id
+    }
+    
+    // Update user store with latest profile data
+    if (userStore.user && data.value) {
+      userStore.setUser({
+        ...userStore.user,
+        first_name: data.value.first_name,
+        last_name: data.value.last_name,
+        phone_number: data.value.phone_number,
+        city: data.value.city?.name,
+        city_id: data.value.city?.id,
+        avatar: data.value.avatar
+      })
+    }
   } catch (err) {
     console.error('Error loading profile:', err)
   } finally {
@@ -191,14 +246,22 @@ const updateProfile = async () => {
   errorMsg.value = ''
   
   try {
-    // First update profile data
-    const { error } = await useApi(`/user/user-profile/${userStore.user?.username}/`, {
+    // Get username from store
+    const username = userStore.user?.username
+    
+    if (!username) {
+      errorMsg.value = 'Помилка: не вдалося отримати інформацію про користувача'
+      return
+    }
+    
+    // Update profile data
+    const { error } = await useApi(`/user/user-profile/`, {
       method: 'PATCH',
       body: {
         first_name: form.firstName,
         last_name: form.lastName,
         phone_number: form.phoneNumber,
-        city: form.city
+        city: form.cityId // Send city ID instead of name
       }
     })
     
@@ -212,7 +275,7 @@ const updateProfile = async () => {
       const formData = new FormData()
       formData.append('avatar', form.avatar)
       
-      const { error: avatarError } = await useApi(`/user/user-profile/${userStore.user?.username}/upload-avatar/`, {
+      const { error: avatarError } = await useApi(`/user/user-profile/upload-avatar/`, {
         method: 'POST',
         body: formData
       })
@@ -224,8 +287,23 @@ const updateProfile = async () => {
     }
     
     // Reload profile data
-    const { data } = await useApi(`/user/user-profile/${userStore.user?.username}/`)
+    const { data } = await useApi(`/user/user-profile/`)
     userProfile.value = data.value
+    
+    // Update user store with latest profile data
+    if (userStore.user && data.value) {
+      const selectedCity = cities.value.find(city => city.id === form.cityId)
+      
+      userStore.setUser({
+        ...userStore.user,
+        first_name: data.value.first_name,
+        last_name: data.value.last_name,
+        phone_number: data.value.phone_number,
+        city: selectedCity?.name || data.value.city?.name,
+        city_id: form.cityId || undefined,
+        avatar: data.value.avatar
+      })
+    }
     
     // Exit edit mode
     isEditing.value = false

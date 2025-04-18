@@ -86,12 +86,21 @@ const register = async () => {
         userStore.setUser({
           id: data.value.user.id,
           username: data.value.user.username,
-          email: data.value.user.email
+          email: data.value.user.email,
+          // New users won't have profile info yet
+          first_name: '',
+          last_name: '',
+          phone_number: '',
+          city: '',
+          city_id: undefined,
+          avatar: ''
         })
       }
       
       emit('close')
-      router.push('/books')
+      
+      // After registration, redirect to profile completion page
+      router.push('/user/complete-profile')
     }
   } catch (err) {
     console.error('Registration error:', err)
